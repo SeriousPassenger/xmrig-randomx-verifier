@@ -1,0 +1,23 @@
+{
+  "name": "xmrig-randomx-verifier",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local fast-mode RandomX verification sidecar for xmrig-proxy",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test test/*.test.js",
+    "smoke": "node examples/real-engine-smoke.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "node-addon-api": "7.1.1",
+    "randomx-hashing": "https://github.com/nssy/node-randomx-hashing/archive/e5bc20530e9aaac30f524fd0dd28ff4072ba745d.tar.gz"
+  },
+  "overrides": {
+    "node-addon-api": "7.1.1"
+  }
+}
