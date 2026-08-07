@@ -26,16 +26,22 @@ test('frame decoder accepts fragmented/coalesced frames and enforces 16 KiB', ()
     const decoder = new FrameDecoder(16 * 1024, 64 * 1024);
     const first = encodeFrame({ v: 1, id: 1, op: 'ping' }, 16 * 1024);
     const second = encodeFrame({ v: 1, id: 2, op: 'stats' }, 16 * 1024);
+    assert.equal(decoder.hasProcessableFrame(), false);
     decoder.append(first.subarray(0, 3));
+    assert.equal(decoder.hasProcessableFrame(), false);
     assert.equal(decoder.next(), null);
     decoder.append(Buffer.concat([first.subarray(3), second]));
+    assert.equal(decoder.hasProcessableFrame(), true);
     assert.deepEqual(decoder.next(), { v: 1, id: 1, op: 'ping' });
+    assert.equal(decoder.hasProcessableFrame(), true);
     assert.deepEqual(decoder.next(), { v: 1, id: 2, op: 'stats' });
+    assert.equal(decoder.hasProcessableFrame(), false);
     assert.equal(decoder.next(), null);
 
     const bad = Buffer.alloc(4);
     bad.writeUInt32BE(16 * 1024 + 1);
     decoder.append(bad);
+    assert.equal(decoder.hasProcessableFrame(), true);
     assert.throws(() => decoder.next(), /frame length/);
 });
 

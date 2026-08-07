@@ -372,6 +372,7 @@ class ClientConnection {
         this.ending = false;
         this.closed = false;
         this.drainingInput = false;
+        this.inputDrainScheduled = false;
         this.closedPromise = new Promise((resolve) => { this.resolveClosed = resolve; });
 
         this.handshakeTimer = setTimeout(() => {
@@ -553,7 +554,18 @@ class ClientConnection {
             return;
         }
         this.socket.resume();
-        queueMicrotask(() => this.#drainInput());
+        // A completed request can free a per-client slot while another full
+        // frame is already buffered. Drain that frame without waiting for a
+        // new socket event, but do not schedule empty drain passes: each pass
+        // calls #updateReadFlow() and an unconditional microtask here would
+        // create an infinite microtask loop that starves all socket I/O.
+        if (this.decoder.hasProcessableFrame() && !this.inputDrainScheduled) {
+            this.inputDrainScheduled = true;
+            queueMicrotask(() => {
+                this.inputDrainScheduled = false;
+                this.#drainInput();
+            });
+        }
     }
 
     #updateFrameTimer() {

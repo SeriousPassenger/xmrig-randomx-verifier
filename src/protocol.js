@@ -76,6 +76,14 @@ class FrameDecoder {
         const length = this.buffer.readUInt32BE(0);
         return length > 0 && length <= this.maxFrameBytes && this.buffer.length < 4 + length;
     }
+
+    hasProcessableFrame() {
+        if (this.buffer.length < 4) {
+            return false;
+        }
+        const length = this.buffer.readUInt32BE(0);
+        return length === 0 || length > this.maxFrameBytes || this.buffer.length >= 4 + length;
+    }
 }
 
 function encodeFrame(value, maxFrameBytes) {
